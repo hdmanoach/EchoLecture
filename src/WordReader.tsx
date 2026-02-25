@@ -363,7 +363,7 @@ const WordReader: React.FC = () => {
               <button
                 type="button"
                 onClick={resume}
-                disabled={!isPaused && !(Boolean(activeReadingText.trim()) && !isSpeaking && currentCharIndex > 0)}
+                disabled={!isPaused}
                 className="rounded-lg bg-sky-500 px-3 py-2 text-sm font-semibold text-white transition hover:bg-sky-600 disabled:cursor-not-allowed disabled:bg-slate-300"
               >
                 Reprendre
