@@ -79,6 +79,7 @@ export const useSpeechSynthesis = () => {
   const activeUtteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
   const sourceTextRef = useRef("");
   const lastCharIndexRef = useRef(0);
+  const pausedCharIndexRef = useRef(0);
   const lastSpeakOptionsRef = useRef<Omit<SpeakOptions, "text"> | null>(null);
   const progressTimerRef = useRef<number | null>(null);
   const isSupported = typeof window !== "undefined" && "speechSynthesis" in window;
@@ -114,6 +115,7 @@ export const useSpeechSynthesis = () => {
     activeUtteranceRef.current = null;
     sourceTextRef.current = "";
     lastCharIndexRef.current = 0;
+    pausedCharIndexRef.current = 0;
     lastSpeakOptionsRef.current = null;
     window.speechSynthesis.cancel();
     setIsSpeaking(false);
@@ -134,6 +136,7 @@ export const useSpeechSynthesis = () => {
         const next = queueRef.current.shift();
         if (!next) {
           activeUtteranceRef.current = null;
+          pausedCharIndexRef.current = 0;
           setIsSpeaking(false);
           setIsPaused(false);
           baseOptions.onEnd?.();
@@ -160,6 +163,7 @@ export const useSpeechSynthesis = () => {
           const absoluteIndex = next.start + clamped;
           if (absoluteIndex < lastCharIndexRef.current) return;
           lastCharIndexRef.current = absoluteIndex;
+          pausedCharIndexRef.current = absoluteIndex;
           baseOptions.onBoundary?.(absoluteIndex);
         };
 
@@ -245,6 +249,7 @@ export const useSpeechSynthesis = () => {
     };
     sourceTextRef.current = text;
     lastCharIndexRef.current = 0;
+    pausedCharIndexRef.current = 0;
     lastSpeakOptionsRef.current = baseOptions;
     startQueue(text, baseOptions, 0);
   }, [isSupported, startQueue]);
@@ -252,6 +257,7 @@ export const useSpeechSynthesis = () => {
   const pause = useCallback(() => {
     if (!isSupported) return;
     if (window.speechSynthesis.speaking && !window.speechSynthesis.paused) {
+      pausedCharIndexRef.current = lastCharIndexRef.current;
       window.speechSynthesis.pause();
       setIsPaused(true);
       setIsSpeaking(false);
@@ -269,14 +275,15 @@ export const useSpeechSynthesis = () => {
 
     const sourceText = sourceTextRef.current;
     const options = lastSpeakOptionsRef.current;
-    const startAt = lastCharIndexRef.current;
+    const startAt = Math.max(pausedCharIndexRef.current, lastCharIndexRef.current);
 
-    if (!window.speechSynthesis.speaking && options && sourceText && startAt < sourceText.length - 1) {
+    if (!window.speechSynthesis.speaking && options && sourceText && startAt < sourceText.length) {
       window.speechSynthesis.cancel();
+      clearProgressTimer();
       setIsPaused(false);
       startQueue(sourceText.slice(startAt), options, startAt);
     }
-  }, [isSupported, startQueue]);
+  }, [isSupported, startQueue, clearProgressTimer]);
 
   const state = useMemo(() => ({
     voices,
