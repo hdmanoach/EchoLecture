@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useState } from "react";
 import PdfReader from "./PdfReader";
 import SuperDocReader from "./SuperDocReader";
 import WordReader from "./WordReader";
@@ -6,26 +6,21 @@ import { loadHistoryByType, type ReadingHistoryEntry } from "./lib/readingHistor
 
 type ReaderChoice = "pdf" | "word" | "superdoc";
 
+const getRecentActivities = (): ReadingHistoryEntry[] => {
+  const pdf = loadHistoryByType("pdf");
+  const word = loadHistoryByType("word");
+  return [...pdf, ...word]
+    .sort((a, b) => +new Date(b.updatedAt) - +new Date(a.updatedAt))
+    .slice(0, 6);
+};
+
 const App: React.FC = () => {
   const [selectedReader, setSelectedReader] = useState<ReaderChoice | null>(null);
-  const [recentActivities, setRecentActivities] = useState<ReadingHistoryEntry[]>([]);
+  const [recentActivities, setRecentActivities] = useState<ReadingHistoryEntry[]>(() => getRecentActivities());
 
   const refreshActivities = useCallback(() => {
-    const pdf = loadHistoryByType("pdf");
-    const word = loadHistoryByType("word");
-    const merged = [...pdf, ...word]
-      .sort((a, b) => +new Date(b.updatedAt) - +new Date(a.updatedAt))
-      .slice(0, 6);
-    setRecentActivities(merged);
+    setRecentActivities(getRecentActivities());
   }, []);
-
-  useEffect(() => {
-    refreshActivities();
-  }, [refreshActivities]);
-
-  useEffect(() => {
-    if (selectedReader === null) refreshActivities();
-  }, [refreshActivities, selectedReader]);
 
   return (
     <main className="mx-auto min-h-screen w-full max-w-7xl px-4 py-8 sm:px-8">
@@ -116,7 +111,10 @@ const App: React.FC = () => {
             <div className="flex flex-wrap items-center gap-3">
               <button
                 type="button"
-                onClick={() => setSelectedReader(null)}
+                onClick={() => {
+                  refreshActivities();
+                  setSelectedReader(null);
+                }}
                 className="rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
               >
                 Changer de choix

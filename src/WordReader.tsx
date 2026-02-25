@@ -25,6 +25,8 @@ interface NormalizedText {
   normalized: string;
   indexMap: number[];
 }
+
+const JUMP_CHAR_COUNT = 260;
 /**
  *  ici on normalise le texte en supprimant les espaces multiples et en ajoutant un espace entre chaque caractère
  */
@@ -230,6 +232,18 @@ const WordReader: React.FC = () => {
     });
   };
 
+  const jumpAndRead = (delta: number) => {
+    if (!texte.trim()) return;
+
+    const maxIndex = Math.max(0, texte.length - 1);
+    const baseIndex = Math.max(0, Math.min(activeDocCharIndex, maxIndex));
+    const targetIndex = Math.max(0, Math.min(baseIndex + delta, maxIndex));
+
+    stop();
+    const textFromTarget = texte.slice(targetIndex);
+    lancerLecture(textFromTarget, targetIndex);
+  };
+
   useEffect(() => {
     if (!texte.trim()) return;
     const timeout = window.setTimeout(() => {
@@ -351,6 +365,22 @@ const WordReader: React.FC = () => {
                 className="rounded-lg bg-emerald-500 px-3 py-2 text-sm font-semibold text-white transition hover:bg-emerald-600 disabled:cursor-not-allowed disabled:bg-slate-300"
               >
                 Depuis curseur
+              </button>
+              <button
+                type="button"
+                onClick={() => jumpAndRead(-JUMP_CHAR_COUNT)}
+                disabled={loading || !isSupported}
+                className="rounded-lg bg-indigo-500 px-3 py-2 text-sm font-semibold text-white transition hover:bg-indigo-600 disabled:cursor-not-allowed disabled:bg-slate-300"
+              >
+                Saut arriere
+              </button>
+              <button
+                type="button"
+                onClick={() => jumpAndRead(JUMP_CHAR_COUNT)}
+                disabled={loading || !isSupported}
+                className="rounded-lg bg-indigo-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-slate-300"
+              >
+                Saut avant
               </button>
               <button
                 type="button"

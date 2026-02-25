@@ -34,6 +34,8 @@ interface NormalizedText {
   indexMap: number[];
 }
 
+const JUMP_CHAR_COUNT = 260;
+
 const normalizeWithMap = (input: string): NormalizedText => {
   let normalized = "";
   const indexMap: number[] = [];
@@ -180,6 +182,18 @@ const PdfReader: React.FC = () => {
     });
   };
 
+  const jumpAndRead = (delta: number) => {
+    if (!texte.trim()) return;
+
+    const maxIndex = Math.max(0, texte.length - 1);
+    const baseIndex = Math.max(0, Math.min(activeDocCharIndex, maxIndex));
+    const targetIndex = Math.max(0, Math.min(baseIndex + delta, maxIndex));
+
+    stop();
+    const textFromTarget = texte.slice(targetIndex);
+    lancerLecture(textFromTarget, targetIndex);
+  };
+
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -321,6 +335,22 @@ const PdfReader: React.FC = () => {
                 className="rounded-lg bg-sky-500 px-3 py-2 text-sm font-semibold text-white transition hover:bg-sky-600 disabled:cursor-not-allowed disabled:bg-slate-300"
               >
                 Depuis curseur
+              </button>
+              <button
+                type="button"
+                onClick={() => jumpAndRead(-JUMP_CHAR_COUNT)}
+                disabled={loading || !isSupported}
+                className="rounded-lg bg-indigo-500 px-3 py-2 text-sm font-semibold text-white transition hover:bg-indigo-600 disabled:cursor-not-allowed disabled:bg-slate-300"
+              >
+                Saut arriere
+              </button>
+              <button
+                type="button"
+                onClick={() => jumpAndRead(JUMP_CHAR_COUNT)}
+                disabled={loading || !isSupported}
+                className="rounded-lg bg-indigo-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-slate-300"
+              >
+                Saut avant
               </button>
               <button
                 type="button"
