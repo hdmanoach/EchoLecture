@@ -107,6 +107,20 @@ export const useSpeechSynthesis = () => {
     };
   }, [isSupported, clearProgressTimer]);
 
+  useEffect(() => {
+    if (!isSupported) return;
+
+    const syncState = () => {
+      const synth = window.speechSynthesis;
+      setIsPaused(synth.paused);
+      setIsSpeaking(synth.speaking && !synth.paused);
+    };
+
+    syncState();
+    const intervalId = window.setInterval(syncState, 180);
+    return () => window.clearInterval(intervalId);
+  }, [isSupported]);
+
   const stop = useCallback(() => {
     if (!isSupported) return;
     clearProgressTimer();
@@ -251,7 +265,10 @@ export const useSpeechSynthesis = () => {
 
   const pause = useCallback(() => {
     if (!isSupported) return;
-    if (window.speechSynthesis.speaking && !window.speechSynthesis.paused) {
+    if (
+      !window.speechSynthesis.paused &&
+      (window.speechSynthesis.speaking || activeUtteranceRef.current !== null || queueRef.current.length > 0)
+    ) {
       window.speechSynthesis.pause();
       setIsPaused(true);
       setIsSpeaking(false);
@@ -260,7 +277,7 @@ export const useSpeechSynthesis = () => {
 
   const resume = useCallback(() => {
     if (!isSupported) return;
-    if (window.speechSynthesis.paused) {
+    if (window.speechSynthesis.paused || isPaused) {
       window.speechSynthesis.resume();
       setIsPaused(false);
       setIsSpeaking(true);
@@ -276,7 +293,7 @@ export const useSpeechSynthesis = () => {
       setIsPaused(false);
       startQueue(sourceText.slice(startAt), options, startAt);
     }
-  }, [isSupported, startQueue]);
+  }, [isPaused, isSupported, startQueue]);
 
   const state = useMemo(() => ({
     voices,

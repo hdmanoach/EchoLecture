@@ -291,8 +291,8 @@ const WordReader: React.FC = () => {
       </div>
 
       {texte && (
-        <div className="grid gap-4 lg:grid-cols-[320px_1fr]">
-          <aside className="space-y-4">
+        <div className="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,320px)_minmax(0,1fr)]">
+          <aside className="min-w-0 space-y-4">
             <section className="rounded-xl border border-slate-200 bg-white p-4">
               <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">Configuration</h3>
               <div className="space-y-3">
@@ -332,7 +332,7 @@ const WordReader: React.FC = () => {
               </div>
             </section>
 
-            <section className="grid grid-cols-2 gap-2 rounded-xl border border-slate-200 bg-white p-3">
+            <section className="grid grid-cols-1 gap-2 rounded-xl border border-slate-200 bg-white p-3 sm:grid-cols-2">
               <button
                 type="button"
                 onClick={() => lancerLecture(texte)}
@@ -363,7 +363,7 @@ const WordReader: React.FC = () => {
               <button
                 type="button"
                 onClick={resume}
-                disabled={!isPaused}
+                disabled={!isPaused && !(Boolean(activeReadingText.trim()) && !isSpeaking && currentCharIndex > 0)}
                 className="rounded-lg bg-sky-500 px-3 py-2 text-sm font-semibold text-white transition hover:bg-sky-600 disabled:cursor-not-allowed disabled:bg-slate-300"
               >
                 Reprendre
@@ -372,7 +372,7 @@ const WordReader: React.FC = () => {
                 type="button"
                 onClick={stop}
                 disabled={!isSpeaking && !isPaused}
-                className="col-span-2 rounded-lg bg-rose-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-rose-700 disabled:cursor-not-allowed disabled:bg-slate-300"
+                className="col-span-1 rounded-lg bg-rose-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-rose-700 disabled:cursor-not-allowed disabled:bg-slate-300 sm:col-span-2"
               >
                 Arreter
               </button>
@@ -405,12 +405,12 @@ const WordReader: React.FC = () => {
               ) : (
                 <ul className="space-y-2">
                   {analysisIssues.slice(-6).map((issue) => (
-                    <li key={issue.id} className="rounded-lg border border-slate-200 bg-slate-50 p-2">
+                    <li key={issue.id} className="rounded-lg border border-slate-200 bg-slate-50 p-2 overflow-hidden">
                       <p className="text-xs font-semibold text-slate-700">
                         {issue.type.toUpperCase()} - Ligne {issue.line}, Col {issue.column}
                       </p>
-                      <p className="text-xs text-slate-600">{issue.message}</p>
-                      <p className="mt-1 text-[11px] text-slate-500">"{issue.excerpt}"</p>
+                      <p className="text-xs text-slate-600 break-words">{issue.message}</p>
+                      <p className="mt-1 text-[11px] text-slate-500 break-words">"{issue.excerpt}"</p>
                     </li>
                   ))}
                 </ul>
@@ -426,7 +426,7 @@ const WordReader: React.FC = () => {
               ) : (
                 <ul className="space-y-2">
                   {historyEntries.slice(0, 4).map((entry) => (
-                    <li key={entry.id} className="rounded-lg border border-slate-200 bg-slate-50 p-2">
+                    <li key={entry.id} className="rounded-lg border border-slate-200 bg-slate-50 p-2 overflow-hidden">
                       <p className="truncate text-xs font-semibold text-slate-700">{entry.documentName}</p>
                       <p className="text-[11px] text-slate-500">
                         Position: {entry.currentIndex} - {new Date(entry.updatedAt).toLocaleString()}
@@ -463,7 +463,7 @@ const WordReader: React.FC = () => {
             </section>
           </aside>
 
-          <section className="rounded-xl border border-slate-200 bg-white p-4">
+          <section className="min-w-0 overflow-hidden rounded-xl border border-slate-200 bg-white p-4">
             <label className="mb-2 block text-sm font-semibold text-slate-700">Texte du document</label>
             <textarea
               ref={textareaRef}
@@ -481,7 +481,7 @@ const WordReader: React.FC = () => {
                 setSelectionError(null);
               }}
               readOnly={isSpeaking || isPaused}
-              className="h-[520px] w-full resize-y rounded-lg border border-slate-300 bg-slate-50 px-3 py-3 font-serif text-[15px] leading-7 text-slate-800 selection:bg-emerald-300 selection:text-slate-900 focus:border-emerald-400 focus:outline-none"
+              className="h-[360px] w-full resize-y rounded-lg border border-slate-300 bg-slate-50 px-3 py-3 font-serif text-[15px] leading-7 text-slate-800 selection:bg-emerald-300 selection:text-slate-900 focus:border-emerald-400 focus:outline-none sm:h-[520px]"
             />
             <p className="mt-2 text-xs text-slate-500">Place le curseur dans le texte puis utilise “Depuis curseur”.</p>
             {selectedText.trim() && (
@@ -490,7 +490,7 @@ const WordReader: React.FC = () => {
                   <p className="text-xs text-slate-600">Bloc selectionne:</p>
                   <button type="button" onClick={() => { setSelectedText(""); setSelectedTextSuggestion(null); setSelectionError(null); }} className="rounded bg-white px-2 py-1 text-[11px] font-semibold text-slate-600">Effacer</button>
                 </div>
-                <p className="max-h-20 overflow-auto rounded bg-white p-2 text-xs text-slate-700">{selectedText}</p>
+                <p className="max-h-20 overflow-auto break-words whitespace-pre-wrap rounded bg-white p-2 text-xs text-slate-700">{selectedText}</p>
                 <button
                   type="button"
                   onClick={handleSelectedTextAnalyze}
@@ -503,9 +503,9 @@ const WordReader: React.FC = () => {
                 {selectedTextSuggestion && (
                   <div className="mt-2 rounded border border-slate-200 bg-white p-2">
                     <p className="text-xs font-semibold text-slate-700">Diagnostic</p>
-                    <p className="text-xs text-slate-600">{selectedTextSuggestion.diagnosis}</p>
+                    <p className="text-xs text-slate-600 break-words whitespace-pre-wrap">{selectedTextSuggestion.diagnosis}</p>
                     <p className="mt-2 text-xs font-semibold text-slate-700">Correction</p>
-                    <p className="whitespace-pre-wrap text-xs text-slate-700">{selectedTextSuggestion.correction}</p>
+                    <p className="whitespace-pre-wrap break-words text-xs text-slate-700">{selectedTextSuggestion.correction}</p>
                     <button
                       type="button"
                       onClick={() => copyText(selectedTextSuggestion.correction)}
@@ -549,7 +549,7 @@ const WordReader: React.FC = () => {
                         <p className="font-semibold text-slate-700">
                           {issue.type.toUpperCase()} - L{issue.line}:C{issue.column}
                         </p>
-                        <p className="mt-1 text-slate-600">{issue.message}</p>
+                        <p className="mt-1 break-words text-slate-600">{issue.message}</p>
                       </button>
                     </li>
                   ))}
@@ -562,20 +562,20 @@ const WordReader: React.FC = () => {
               ) : (
                 <div>
                   <p className="text-xs font-semibold uppercase text-slate-500">Bloc cible</p>
-                  <p className="mt-1 rounded bg-slate-50 p-3 text-sm text-slate-700">{activeIssue.excerpt}</p>
+                  <p className="mt-1 break-words rounded bg-slate-50 p-3 text-sm text-slate-700">{activeIssue.excerpt}</p>
                   {issueLoadingId === activeIssue.id ? (
                     <p className="mt-3 text-sm text-slate-500">Generation de correction...</p>
                   ) : issueSuggestions[activeIssue.id] ? (
                     <div className="mt-3 space-y-3">
                       <div>
                         <p className="text-xs font-semibold uppercase text-slate-500">Diagnostic</p>
-                        <p className="rounded bg-amber-50 p-3 text-sm text-slate-700">
+                        <p className="whitespace-pre-wrap break-words rounded bg-amber-50 p-3 text-sm text-slate-700">
                           {issueSuggestions[activeIssue.id].diagnosis}
                         </p>
                       </div>
                       <div>
                         <p className="text-xs font-semibold uppercase text-slate-500">Correction</p>
-                        <p className="whitespace-pre-wrap rounded bg-emerald-50 p-3 text-sm text-slate-700">
+                        <p className="whitespace-pre-wrap break-words rounded bg-emerald-50 p-3 text-sm text-slate-700">
                           {issueSuggestions[activeIssue.id].correction}
                         </p>
                       </div>

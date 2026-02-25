@@ -55,7 +55,7 @@ const ReadingProgress: React.FC<ReadingProgressProps> = ({
   return (
     <div className="rounded-xl border border-slate-200 bg-white/80 p-4 shadow-sm">
       <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">{title}</h4>
-      <p className="text-sm leading-7 text-slate-700">
+      <p className="text-sm leading-7 text-slate-700 break-words">
         <span>{content.before}</span>
         <span className={`rounded px-1 font-semibold underline decoration-4 ${COLOR_CLASS[color]}`}>
           {content.current}
